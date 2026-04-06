@@ -6820,6 +6820,34 @@ class Index(IndexOpsMixin, PandasObject):
             dtype = new_values.dtype
         return Index(new_values, dtype=dtype, copy=False, name=self.name)
 
+    def replace(self, to_replace=None, value=lib.no_default, regex=False):
+        """
+        Replace values in the Index.
+
+        Parameters
+        ----------
+        to_replace : scalar, list, or dict
+        value : scalar, default no_default
+        regex : bool, default False
+
+        Returns
+        -------
+        Index
+        """
+        from pandas import Series
+
+        ser = Series(self)
+
+        if self._is_multi:
+            raise NotImplementedError("replace is not implemented for MultiIndex")
+
+        if value is lib.no_default:
+            replaced = ser.replace(to_replace, regex=regex)
+        else:
+            replaced = ser.replace(to_replace, value, regex=regex)
+
+        return self._shallow_copy(replaced._values, name=self.name)
+
     # TODO: De-duplicate with map, xref GH#32349
     @final
     def _transform_index(self, func: Callable, *, level: int | None = None) -> Index:
