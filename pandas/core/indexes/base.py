@@ -6820,19 +6820,39 @@ class Index(IndexOpsMixin, PandasObject):
             dtype = new_values.dtype
         return Index(new_values, dtype=dtype, copy=False, name=self.name)
 
-    def replace(self, to_replace=None, value=lib.no_default, regex=False):
+    def replace(
+        self, to_replace: Any = None, value: Any = lib.no_default, regex: bool = False
+    ) -> Index:
         """
         Replace values in the Index.
+
+        Replace values given in `to_replace` with `value`. Values of the Index
+        that are not in `to_replace` are left unchanged.
 
         Parameters
         ----------
         to_replace : scalar, list, or dict
+            The value(s) to be replaced. If a dict is provided, value must be omitted.
         value : scalar, default no_default
+            The value to replace occurrences of to_replace with.
         regex : bool, default False
+            Whether to interpret to_replace as a regular expression.
 
         Returns
         -------
         Index
+            Index with replaced values.
+
+        See Also
+        --------
+        Series.replace : Replace values in a Series.
+        DataFrame.replace : Replace values in a DataFrame.
+
+        Examples
+        --------
+        >>> idx = pd.Index([1, 2, 3, 4, 5])
+        >>> idx.replace(3, 30)
+        Index([1, 2, 30, 4, 5], dtype='int64')
         """
         from pandas import Series
 
