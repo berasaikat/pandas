@@ -6854,17 +6854,11 @@ class Index(IndexOpsMixin, PandasObject):
         >>> idx.replace(3, 30)
         Index([1, 2, 30, 4, 5], dtype='int64')
         """
-        from pandas import Series
-
-        ser = Series(self)
-
         if self._is_multi:
             raise NotImplementedError("replace is not implemented for MultiIndex")
 
-        if value is lib.no_default:
-            replaced = ser.replace(to_replace, regex=regex)
-        else:
-            replaced = ser.replace(to_replace, value, regex=regex)
+        ser = self.to_series()
+        replaced = ser.replace(to_replace, value, regex=regex)
 
         return self._shallow_copy(replaced._values, name=self.name)
 
