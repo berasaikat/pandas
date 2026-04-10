@@ -6833,7 +6833,7 @@ class Index(IndexOpsMixin, PandasObject):
         ----------
         to_replace : scalar, list, or dict
             The value(s) to be replaced. If a dict is provided, value must be omitted.
-        value : scalar, default no_default
+        value : scalar, default None
             The value to replace occurrences of to_replace with.
         regex : bool, default False
             Whether to interpret to_replace as a regular expression.
