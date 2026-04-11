@@ -2632,7 +2632,7 @@ class DataFrameGroupBy(GroupBy[DataFrame]):
 
         **kwargs
             Keyword arguments to be passed into func.
-            When ``func=None``, **kwargs should be pairs of
+            When ``func=None``, ``**kwargs`` should be pairs of
             ``output_name=NamedAgg(column, aggfunc)`` for named aggregation.
 
         Returns
