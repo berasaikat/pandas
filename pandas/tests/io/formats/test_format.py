@@ -2131,6 +2131,34 @@ class TestTimedelta64Formatter:
         result = fmt._Timedelta64Formatter(x).get_result()
         assert result[0].strip() == "0 days"
 
+    def test_fractional_seconds_aligned(self):
+        # GH#57188 - fractional seconds should be right-padded to uniform width
+        s = 1 / pd.Series(np.arange(1, 4))
+        td = pd.to_timedelta(s, unit="s")._values
+        result = fmt._Timedelta64Formatter(td).get_result()
+        # Strip leading/trailing whitespace, then check all td strings are same length
+        stripped = [r.strip() for r in result]
+        lengths = [len(s) for s in stripped]
+        assert len(set(lengths)) == 1, f"Timedelta strings not aligned: {stripped}"
+
+    def test_fractional_seconds_no_frac_unchanged(self):
+        # GH#57188 - whole-second values should not gain a decimal point
+        y = pd.to_timedelta(list(range(3)), unit="s")._values
+        result = fmt._Timedelta64Formatter(y).get_result()
+        for r in result:
+            time_part = r.strip().split(" ")[-1]
+            assert "." not in time_part
+
+    def test_fractional_seconds_nat_handled(self):
+        # GH#57188 - NaT should not break alignment
+        td = pd.to_timedelta([1e9, pd.NaT.value, 5e8], unit="ns")._values
+        result = fmt._Timedelta64Formatter(td).get_result()  # should not raise
+        stripped = [r.strip() for r in result]
+        assert "NaT" in stripped
+        # non-NaT entries should still be aligned
+        non_nat = [s for s in stripped if s != "NaT"]
+        assert len({len(s) for s in non_nat}) == 1
+
 
 class TestDatetime64Formatter:
     def test_mixed(self):

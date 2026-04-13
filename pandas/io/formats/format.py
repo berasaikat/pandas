@@ -1660,6 +1660,49 @@ def get_format_datetime64(
         return lambda x: _format_datetime64(x, na_rep=na_rep)
 
 
+def _align_timedelta_fractional_seconds(fmt_values: list[str]) -> list[str]:
+    """
+    Right-pad fractional seconds in timedelta string representations
+    so they align visually across a Series/column. GH#57188.
+
+    E.g. turns:
+        ['0 days 00:00:01', '0 days 00:00:00.500000', '0 days 00:00:00.333333333']
+    into:
+        ['0 days 00:00:01.000000000',
+        '0 days 00:00:00.500000000',
+        '0 days 00:00:00.333333333']
+    """
+    # Find max fractional-seconds length across all non-NaT values.
+    # Fractional part is after the last '.' in the time component (HH:MM:SS.frac).
+    max_frac_len = 0
+    for s in fmt_values:
+        if s == "NaT":
+            continue
+        # The time component is always the last space-separated token
+        time_part = s.split(" ")[-1]
+        if "." in time_part:
+            frac_len = len(time_part.split(".")[-1])
+            if frac_len > max_frac_len:
+                max_frac_len = frac_len
+
+    # If no value has a fractional part, nothing to align.
+    if max_frac_len == 0:
+        return fmt_values
+
+    result = []
+    for s in fmt_values:
+        if s == "NaT":
+            result.append(s)
+            continue
+        time_part = s.split(" ")[-1]
+        if "." in time_part:
+            frac_len = len(time_part.split(".")[-1])
+            result.append(s + "0" * (max_frac_len - frac_len))
+        else:
+            result.append(s + "." + "0" * max_frac_len)
+    return result
+
+
 class _Timedelta64Formatter(_GenericArrayFormatter):
     values: TimedeltaArray
 
@@ -1675,7 +1718,8 @@ class _Timedelta64Formatter(_GenericArrayFormatter):
         formatter = self.formatter or get_format_timedelta64(
             self.values, na_rep=self.na_rep, box=False
         )
-        return [formatter(x) for x in self.values]
+        fmt_values = [formatter(x) for x in self.values]
+        return _align_timedelta_fractional_seconds(fmt_values)
 
 
 def get_format_timedelta64(
