@@ -2133,7 +2133,7 @@ class TestTimedelta64Formatter:
 
     def test_fractional_seconds_aligned(self):
         # GH#57188 - fractional seconds should be right-padded to uniform width
-        s = 1 / pd.Series(np.arange(1, 4))
+        s = 1 / Series(np.arange(1, 4))
         td = pd.to_timedelta(s, unit="s")._values
         result = fmt._Timedelta64Formatter(td).get_result()
         # Strip leading/trailing whitespace, then check all td strings are same length
@@ -2151,7 +2151,7 @@ class TestTimedelta64Formatter:
 
     def test_fractional_seconds_nat_handled(self):
         # GH#57188 - NaT should not break alignment
-        td = pd.to_timedelta([1e9, pd.NaT.value, 5e8], unit="ns")._values
+        td = pd.to_timedelta([1e9, NaT.value, 5e8], unit="ns")._values
         result = fmt._Timedelta64Formatter(td).get_result()  # should not raise
         stripped = [r.strip() for r in result]
         assert "NaT" in stripped
